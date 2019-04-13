@@ -4,24 +4,22 @@
 #include <SPI.h>
 #include <SoftwareSerial.h>
 
-
 #define PM_TX 2
 #define PM_RX 3
 #define dht_apin A0
 
 SDS011 sds;
-int pinCS = 53; // Pin 10 on Arduino Uno
 dht DHT;
+int pinCS = 53; // Pin 10 on Arduino Uno
 
 void setup(void)
 {
   sds.begin(PM_TX, PM_RX);
-  Serial.begin(9600);
-  
-  
-//  delay(500);//Delay to let system boot
-//  delay(1000);//Wait before accessing Sensor
 
+  // Start logging on serial port 9600
+  Serial.begin(9600);
+
+  // Initialize SD card writing
   if (SD.begin())
   {
     Serial.println("SD card is ready to use.");
@@ -31,6 +29,7 @@ void setup(void)
     return;
   }
 
+  // Create CSV headers
   File logFile = SD.open("logs.csv", FILE_WRITE); 
   if (logFile){
     String header = "Iteration, Temp., Humidity, PM2.5, PM10";
@@ -44,14 +43,17 @@ void setup(void)
 int i = 1;
 void loop(void)
 { 
+  // Variables for pm2.5, pm10 and error
   float pm25, pm10;
   int error;
   do {
     error = sds.read(&pm25, &pm10);
     } while (error != 0);
   
+  // Read humidity and temperature
   DHT.read11(dht_apin);
 
+// Write data to CSV file
 File logFile = SD.open("logs.csv", FILE_WRITE); 
   if (logFile){
     logFile.print(i);
@@ -67,17 +69,9 @@ File logFile = SD.open("logs.csv", FILE_WRITE);
   }else {
     Serial.println("Couldn't open log file");
   }
-    Serial.print(i);
-    Serial.print(",");
-    Serial.print(DHT.temperature);
-    Serial.print(",");
-    Serial.print(DHT.humidity);
-    Serial.print(",");
-    Serial.print(pm25);
-    Serial.print(",");
-    Serial.println(pm10);
-
     i++;
+
+  // Delay for 300 000ms = 5 min
   delay(300000);
 
 }
